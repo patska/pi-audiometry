@@ -1,2 +1,2 @@
-# pi-audiometry
-Project to develop a device for pure tone audiometry.
+# PI V - IOT Project.
+Project to develop an IOT device for pure tone audiometry test.
