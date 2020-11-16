@@ -1,0 +1,5 @@
+{
+    "sketch": "audiometer\\audiometer.ino",
+    "board": "arduino:avr:uno",
+    "port": "COM3"
+}
