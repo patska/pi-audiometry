@@ -1,5 +1,6 @@
 const int STOP_BUTTON = 2;
 const int START_BUTTON = 3;
+const int ACTION_BUTTON = 4;
 const int BLUE_LED = 9;
 const int GREEN_LED = 10;
 const int RED_LED = 11;
@@ -8,6 +9,7 @@ const int RED_LED = 11;
 
 int stopButtonState = 0;
 int startButtonState = 0;
+int actionButtonState = 0;
 int exitCode = 0;
 
 void setColor(int red, int green, int blue)
@@ -56,6 +58,11 @@ void exitChecker(){
 }
 
 void chooseMainEarSide(){
+  while (exitCode == 0)
+  {
+
+    exitChecker();
+  }
   
 }
 
