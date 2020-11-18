@@ -17,6 +17,7 @@ int startButtonState = 0;
 int rightButtonState = 0;
 int leftButtonState = 0;
 int exitCode = 0;
+int leftOrRight = 0;
 unsigned long previousMillis = 0;
 Volume vol;
 
@@ -77,7 +78,7 @@ void exitChecker()
 
 int chooseMainEarSide()
 {
-  const long interval = 300000;
+  const long interval = 200000;
   unsigned long currentMillis = millis();
 
   while (exitCode == 0)
@@ -89,10 +90,23 @@ int chooseMainEarSide()
     else
     {
       noTone(LEFT_BUZZER);
-      if (millis() - currentMillis < 600000)
+      if (millis() - currentMillis < 400000)
         tone(RIGHT_BUZZER, 1000);
       else
+      {
         noTone(RIGHT_BUZZER);
+        leftButtonState = digitalRead(LEFT_BUTTON);
+        rightButtonState = digitalRead(RIGHT_BUTTON);
+        if (leftButtonState == 1){
+          leftOrRight = 0; 
+          Serial.println("Left ear chosen");
+        } 
+        if (rightButtonState == 1){
+          leftOrRight = 1;
+          Serial.println("Right ear chosen");
+        }
+      };
+
     }
     exitChecker();
   }
@@ -100,21 +114,21 @@ int chooseMainEarSide()
   return 0;
 }
 
-void testLeftEar()
-{
-  vol.alternatePin(false);
-  vol.tone(1000, 255);
-  vol.delay(1000);
-  vol.end();
-}
+// void testLeftEar()
+// {
+//   vol.alternatePin(false);
+//   vol.tone(1000, 255);
+//   vol.delay(1000);
+//   vol.end();
+// }
 
-void testRightEar()
-{
-  vol.alternatePin(true);
-  vol.tone(1000, 255);
-  vol.delay(1000);
-  vol.end();
-}
+// void testRightEar()
+// {
+//   vol.alternatePin(true);
+//   vol.tone(1000, 255);
+//   vol.delay(1000);
+//   vol.end();
+// }
 
 void setup()
 {
