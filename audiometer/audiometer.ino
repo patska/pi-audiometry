@@ -149,7 +149,7 @@ void doWait()
     {
       if (ledState == LOW)
       {
-        turnOnOrangeLight();
+        turnOnBlueLight();
         counter++;
       }
       else
@@ -268,6 +268,9 @@ void setup()
 
 void loop()
 {
+
+  
+
   exitCode = 0;
   returnCode = -1;
   turnOnRedLight();
