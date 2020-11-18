@@ -12,12 +12,14 @@ const int RIGHT_BUZZER = 6;
 
 #define COMMON_ANODE
 
+int testMatrix[2][6] = {2000, 4000, 6000, 8000, 500, 250, 0, 0, 0, 0, 0, 0};
 int stopButtonState = 0;
 int startButtonState = 0;
 int rightButtonState = 0;
 int leftButtonState = 0;
 int exitCode = 0;
-int leftOrRight = 0;
+int returnCode = -1;
+
 unsigned long previousMillis = 0;
 Volume vol;
 
@@ -60,6 +62,10 @@ void startAudiometerTest()
   {
     turnOnBlueLight();
     int earSide = chooseMainEarSide();
+    if (earSide == 1 || earSide == 2) doTest(earSide);
+    else
+      Serial.println("Ear side doesn't chosen");
+
     exitChecker();
   }
 }
@@ -78,10 +84,9 @@ void exitChecker()
 
 int chooseMainEarSide()
 {
-  const long interval = 200000;
+  const long interval = 100000;
   unsigned long currentMillis = millis();
-
-  while (exitCode == 0)
+  while (exitCode == 0 && returnCode == -1)
   {
     if (millis() - currentMillis <= interval)
     {
@@ -90,28 +95,29 @@ int chooseMainEarSide()
     else
     {
       noTone(LEFT_BUZZER);
-      if (millis() - currentMillis < 400000)
+      if (millis() - currentMillis < 300000)
         tone(RIGHT_BUZZER, 1000);
       else
       {
         noTone(RIGHT_BUZZER);
         leftButtonState = digitalRead(LEFT_BUTTON);
         rightButtonState = digitalRead(RIGHT_BUTTON);
-        if (leftButtonState == 1){
-          leftOrRight = 0; 
-          Serial.println("Left ear chosen");
-        } 
-        if (rightButtonState == 1){
-          leftOrRight = 1;
-          Serial.println("Right ear chosen");
+        if (leftButtonState == 1)
+        {
+          returnCode =  0;
+        }
+        if (rightButtonState == 1)
+        {
+          returnCode =  1;
         }
       };
-
     }
+    Serial.println(returnCode);
+    if (returnCode != -1) break;
     exitChecker();
   }
 
-  return 0;
+  return returnCode;
 }
 
 // void testLeftEar()
@@ -130,6 +136,12 @@ int chooseMainEarSide()
 //   vol.end();
 // }
 
+void doTest(int earSide){
+  if (earSide == 1) Serial.println("Test will start in left ear");
+  else Serial.println("Test will start in right ear");
+
+}
+
 void setup()
 {
   Serial.begin(9600);
@@ -145,6 +157,7 @@ void setup()
 void loop()
 {
   exitCode = 0;
+  returnCode = -1;
   turnOnRedLight();
   startButtonState = digitalRead(START_BUTTON);
   if (startButtonState == 1)
