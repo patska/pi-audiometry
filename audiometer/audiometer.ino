@@ -10,6 +10,8 @@ const int RED_LED = 11;
 const int LEFT_BUZZER = 5;
 const int RIGHT_BUZZER = 6;
 const long WAIT_BLINK_INTERVAL = 100000;
+const long FRENQUENCY_BUZZER_INTERVAL = 100000;
+
 #define COMMON_ANODE
 
 int frequencyArray[6] = {2000, 4000, 6000, 8000, 500, 250};
@@ -22,8 +24,11 @@ int leftButtonState = 0;
 int exitCode = 0;
 int returnCode = -1;
 int ledState = LOW;
+bool buzzerOn = false;
 unsigned long waitPreviousMillis = 0;
 unsigned long previousMillis = 0;
+unsigned long buzzerPreviousMillis = 0;
+
 Volume vol;
 
 void setColor(int red, int green, int blue)
@@ -178,14 +183,25 @@ void doTest(int earSide)
     int earSideBuzzer[2] = {LEFT_BUZZER, RIGHT_BUZZER};
     int earSideButton[2] = {LEFT_BUTTON, RIGHT_BUTTON};
     int optionSelected = 0;
+    int earTestedCounter = 0;
+    int tempArray[6];
     if (earSide == 0)
       Serial.println("Test will start in left ear");
     else
       Serial.println("Test will start in right ear");
-    
+    while (earTestedCounter != 3 && exitCode == 0)
+    {
+      for (int i = 0; i < 6; i++)
+      {
+        tone(earSideBuzzer[earSide], frequencyArray[i]);
+        delay(1000);
+        noTone(earSideBuzzer[earSide]);
+      }
+      
+      exitChecker();
+    }  
+    exitChecker();
   }
-
-  exitChecker();
 }
 
 void setup()
@@ -202,6 +218,29 @@ void setup()
 
 void loop()
 {
+  // START TEST
+  int counter = 0;
+  while (exitCode == 0)
+  {
+    turnOnOrangeLight();
+    unsigned long currentMillis = millis();
+    leftButtonState = digitalRead(LEFT_BUTTON);
+    if (currentMillis - buzzerPreviousMillis >= FRENQUENCY_BUZZER_INTERVAL){
+      if (buzzerOn) {
+        noTone(LEFT_BUZZER);
+        buzzerOn = false;
+      } else {
+        tone(LEFT_BUZZER, frequencyArray[counter]);
+        Serial.println(frequencyArray[counter]);
+        buzzerOn = true;
+        counter++;
+      }
+      buzzerPreviousMillis = currentMillis;
+    }
+    if (counter == 5) break;
+    exitChecker();
+  }  
+  // END TEST
   exitCode = 0;
   returnCode = -1;
   turnOnRedLight();
