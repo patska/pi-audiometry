@@ -10,7 +10,7 @@ const int RED_LED = 11;
 const int LEFT_BUZZER = 5;
 const int RIGHT_BUZZER = 6;
 const long WAIT_BLINK_INTERVAL = 100000;
-const long FRENQUENCY_BUZZER_INTERVAL = 100000;
+const long FRENQUENCY_BUZZER_INTERVAL = 200000;
 
 #define COMMON_ANODE
 
@@ -76,7 +76,7 @@ void startAudiometerTest()
   {
     turnOnBlueLight();
     int earSide = chooseMainEarSide();
-    if (earSide == 1 || earSide == 2)
+    if (earSide == 0 || earSide == 1)
     {
       doWait();
       doTest(earSide);
@@ -104,7 +104,7 @@ int chooseMainEarSide()
 {
   const long interval = 100000;
   unsigned long currentMillis = millis();
-  while (exitCode == 0 && returnCode == -1)
+  while (exitCode == 0)
   {
     if (millis() - currentMillis <= interval)
     {
@@ -139,22 +139,6 @@ int chooseMainEarSide()
   return returnCode;
 }
 
-// void testLeftEar()
-// {
-//   vol.alternatePin(false);
-//   vol.tone(1000, 255);
-//   vol.delay(1000);
-//   vol.end();
-// }
-
-// void testRightEar()
-// {
-//   vol.alternatePin(true);
-//   vol.tone(1000, 255);
-//   vol.delay(1000);
-//   vol.end();
-// }
-
 void doWait()
 {
   int counter = 0;
@@ -185,22 +169,88 @@ void doTest(int earSide)
     int optionSelected = 0;
     int earTestedCounter = 0;
     int tempArray[6];
-    if (earSide == 0)
-      Serial.println("Test will start in left ear");
-    else
-      Serial.println("Test will start in right ear");
-    while (earTestedCounter != 3 && exitCode == 0)
+
+    while (earTestedCounter < 2 && exitCode == 0)
     {
-      for (int i = 0; i < 6; i++)
+      int counter = 0;
+      buzzerOn = false;
+      int buttonState;
+      if (earTestedCounter == 1)
       {
-        tone(earSideBuzzer[earSide], frequencyArray[i]);
-        delay(1000);
-        noTone(earSideBuzzer[earSide]);
+        if (earSide == 1)
+          earSide = 0;
+        else if (earSide == 0)
+          earSide = 1;
+        else
+          Serial.println("Exception when switch between ear sides");
+        delay(2000);
       }
-      
+      Serial.println(earTestedCounter);
+      if (earSide == 0)
+        Serial.println("Test will start in left ear");
+      else if (earSide == 1)
+        Serial.println("Test will start in right ear");
+      else
+        Serial.println("Exception when switch between ear sides");
+      while (counter != 7 && exitCode == 0)
+      {
+        unsigned long currentMillis = millis();
+        if (!buzzerOn)
+        {
+          buttonState = digitalRead(earSideButton[earSide]);
+          if (buttonState == 1)
+          {
+            if (earSide == 0)
+              leftSideArray[counter - 1] = 1;
+            else if (earSide == 1){
+              rightSideArray[counter - 1] = 1;
+              Serial.println(counter - 1);
+            }
+            else
+              Serial.println("Ear side selection failed.");
+          }
+        }
+        if (currentMillis - buzzerPreviousMillis >= FRENQUENCY_BUZZER_INTERVAL)
+        {
+          if (buzzerOn)
+          {
+            noTone(earSideBuzzer[earSide]);
+            buzzerOn = false;
+          }
+          else
+          {
+            if (counter < 6)
+            {
+              tone(earSideBuzzer[earSide], frequencyArray[counter]);
+              Serial.println(frequencyArray[counter]);
+              buzzerOn = true;
+            }
+            counter++;
+          }
+          buzzerPreviousMillis = currentMillis;
+        }
+        exitChecker();
+      }
       exitChecker();
-    }  
+      earTestedCounter++;
+    }
+    printResult();
     exitChecker();
+  }
+}
+
+void printResult()
+{
+  while (exitCode == 0)
+  {
+    for (int i = 0; i < 6; i++)
+    {
+      String frequency = String(frequencyArray[i]);
+      String leftEar = String(leftSideArray[i]);
+      String rightEar = String(rightSideArray[i]);
+      Serial.println(frequency + " - " + leftEar + " - " + rightEar);
+    }
+    exitCode = 1;
   }
 }
 
@@ -218,29 +268,6 @@ void setup()
 
 void loop()
 {
-  // START TEST
-  int counter = 0;
-  while (exitCode == 0)
-  {
-    turnOnOrangeLight();
-    unsigned long currentMillis = millis();
-    leftButtonState = digitalRead(LEFT_BUTTON);
-    if (currentMillis - buzzerPreviousMillis >= FRENQUENCY_BUZZER_INTERVAL){
-      if (buzzerOn) {
-        noTone(LEFT_BUZZER);
-        buzzerOn = false;
-      } else {
-        tone(LEFT_BUZZER, frequencyArray[counter]);
-        Serial.println(frequencyArray[counter]);
-        buzzerOn = true;
-        counter++;
-      }
-      buzzerPreviousMillis = currentMillis;
-    }
-    if (counter == 5) break;
-    exitChecker();
-  }  
-  // END TEST
   exitCode = 0;
   returnCode = -1;
   turnOnRedLight();
