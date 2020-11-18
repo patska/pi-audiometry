@@ -9,17 +9,20 @@ const int GREEN_LED = 10;
 const int RED_LED = 11;
 const int LEFT_BUZZER = 5;
 const int RIGHT_BUZZER = 6;
-
+const long WAIT_BLINK_INTERVAL = 100000;
 #define COMMON_ANODE
 
-int testMatrix[2][6] = {2000, 4000, 6000, 8000, 500, 250, 0, 0, 0, 0, 0, 0};
+int frequencyArray[6] = {2000, 4000, 6000, 8000, 500, 250};
+int leftSideArray[6] = {0, 0, 0, 0, 0, 0};
+int rightSideArray[6] = {0, 0, 0, 0, 0, 0};
 int stopButtonState = 0;
 int startButtonState = 0;
 int rightButtonState = 0;
 int leftButtonState = 0;
 int exitCode = 0;
 int returnCode = -1;
-
+int ledState = LOW;
+unsigned long waitPreviousMillis = 0;
 unsigned long previousMillis = 0;
 Volume vol;
 
@@ -53,16 +56,26 @@ void turnOnBlueLight()
 
 void turnOnOrangeLight()
 {
-  setColor(255, 99, 71);
+  setColor(255, 255, 0);
+  ledState = HIGH;
 }
 
+void turnOffLed()
+{
+  setColor(0, 0, 0);
+  ledState = LOW;
+}
 void startAudiometerTest()
 {
   while (exitCode == 0)
   {
     turnOnBlueLight();
     int earSide = chooseMainEarSide();
-    if (earSide == 1 || earSide == 2) doTest(earSide);
+    if (earSide == 1 || earSide == 2)
+    {
+      doWait();
+      doTest(earSide);
+    }
     else
       Serial.println("Ear side doesn't chosen");
 
@@ -95,7 +108,7 @@ int chooseMainEarSide()
     else
     {
       noTone(LEFT_BUZZER);
-      if (millis() - currentMillis < 300000)
+      if (millis() - currentMillis < 200000)
         tone(RIGHT_BUZZER, 1000);
       else
       {
@@ -104,16 +117,17 @@ int chooseMainEarSide()
         rightButtonState = digitalRead(RIGHT_BUTTON);
         if (leftButtonState == 1)
         {
-          returnCode =  0;
+          returnCode = 0;
         }
         if (rightButtonState == 1)
         {
-          returnCode =  1;
+          returnCode = 1;
         }
       };
     }
     Serial.println(returnCode);
-    if (returnCode != -1) break;
+    if (returnCode != -1)
+      break;
     exitChecker();
   }
 
@@ -136,10 +150,42 @@ int chooseMainEarSide()
 //   vol.end();
 // }
 
-void doTest(int earSide){
-  if (earSide == 1) Serial.println("Test will start in left ear");
-  else Serial.println("Test will start in right ear");
+void doWait()
+{
+  int counter = 0;
+  while (exitCode == 0 && counter != 4)
+  {
+    unsigned long currentMillis = millis();
+    if (currentMillis - previousMillis >= WAIT_BLINK_INTERVAL)
+    {
+      if (ledState == LOW)
+      {
+        turnOnOrangeLight();
+        counter++;
+      }
+      else
+        turnOffLed();
+      previousMillis = currentMillis;
+    }
+    exitChecker();
+  }
+}
+void doTest(int earSide)
+{
+  while (exitCode == 0)
+  {
+    turnOnGreenLight();
+    int earSideBuzzer[2] = {LEFT_BUZZER, RIGHT_BUZZER};
+    int earSideButton[2] = {LEFT_BUTTON, RIGHT_BUTTON};
+    int optionSelected = 0;
+    if (earSide == 0)
+      Serial.println("Test will start in left ear");
+    else
+      Serial.println("Test will start in right ear");
+    
+  }
 
+  exitChecker();
 }
 
 void setup()
