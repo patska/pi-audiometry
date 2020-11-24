@@ -81,8 +81,6 @@ void startAudiometerTest()
       doWait();
       doTest(earSide);
     }
-    else
-      Serial.println("Ear side doesn't chosen");
 
     exitChecker();
   }
@@ -130,7 +128,6 @@ int chooseMainEarSide()
         }
       };
     }
-    Serial.println(returnCode);
     if (returnCode != -1)
       break;
     exitChecker();
@@ -149,7 +146,7 @@ void doWait()
     {
       if (ledState == LOW)
       {
-        turnOnBlueLight();
+        turnOnOrangeLight();
         counter++;
       }
       else
@@ -181,17 +178,10 @@ void doTest(int earSide)
           earSide = 0;
         else if (earSide == 0)
           earSide = 1;
-        else
-          Serial.println("Exception when switch between ear sides");
+      
         delay(2000);
       }
-      Serial.println(earTestedCounter);
-      if (earSide == 0)
-        Serial.println("Test will start in left ear");
-      else if (earSide == 1)
-        Serial.println("Test will start in right ear");
-      else
-        Serial.println("Exception when switch between ear sides");
+  
       while (counter != 7 && exitCode == 0)
       {
         unsigned long currentMillis = millis();
@@ -204,10 +194,8 @@ void doTest(int earSide)
               leftSideArray[counter - 1] = 1;
             else if (earSide == 1){
               rightSideArray[counter - 1] = 1;
-              Serial.println(counter - 1);
             }
-            else
-              Serial.println("Ear side selection failed.");
+           
           }
         }
         if (currentMillis - buzzerPreviousMillis >= FRENQUENCY_BUZZER_INTERVAL)
@@ -222,7 +210,6 @@ void doTest(int earSide)
             if (counter < 6)
             {
               tone(earSideBuzzer[earSide], frequencyArray[counter]);
-              Serial.println(frequencyArray[counter]);
               buzzerOn = true;
             }
             counter++;
@@ -263,13 +250,11 @@ void setup()
   pinMode(START_BUTTON, INPUT);
   pinMode(STOP_BUTTON, INPUT);
   vol.begin();
-  Serial.println("Audiometer started");
 }
 
 void loop()
 {
 
-  
 
   exitCode = 0;
   returnCode = -1;
